@@ -1,10 +1,4 @@
 pipeline {
-  agent {
-    node {
-      label 'dckubt16s1'
-    }
-    
-  }
   stages {
     stage('verify envs') {
       parallel {
@@ -25,7 +19,7 @@ ls -l'''
       steps {
         sh '''cd amd64
 ls -l
-docker build --no-cache -t mbixtech/observium:jenkins-${BUILD_NUMBER} .'''
+docker build --no-cache -t shawngmc/observium:jenkins-${BUILD_NUMBER} .'''
       }
     }
     stage('verify docker') {
