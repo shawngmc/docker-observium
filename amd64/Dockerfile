@@ -94,7 +94,6 @@ WORKDIR /opt/observium
 
 # configure entry point
 COPY supervisord.conf /etc/supervisord.conf
-USER nonroot
 ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisord.conf" ]
 
 # expose tcp port
