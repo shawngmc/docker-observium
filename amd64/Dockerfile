@@ -1,40 +1,14 @@
-# Docker container for Observium Community Edition
-#
-# It requires option of e.g. '--link observiumdb:observiumdb' with another MySQL or MariaDB container.
-# Example usage:
-# 1. MySQL or MariaDB container
-#    $ mkdir -p /home/docker/observium/data
-#    $ docker run --name observiumdb \
-#        -v /home/docker/observium/data:/var/lib/mysql \
-#        -e MYSQL_ROOT_PASSWORD=passw0rd \
-#        -e MYSQL_USER=observium \
-#        -e MYSQL_PASSWORD=passw0rd \
-#        -e MYSQL_DATABASE=observium \
-#        mariadb
-#
-# 2. This Observium container
-#    $ mkdir -p /home/docker/observium/logs /home/docker/observium/rrd
-#    $ docker run --name observiumapp --link observiumdb:observiumdb \
-#        -v /home/docker/observium/logs:/opt/observium/logs \
-#        -v /home/docker/observium/rrd:/opt/observium/rrd \
-#        -e OBSERVIUM_ADMIN_USER=admin \
-#        -e OBSERVIUM_ADMIN_PASS=passw0rd \
-#        -e OBSERVIUM_DB_HOST=observiumdb \
-#        -e OBSERVIUM_DB_USER=observium \
-#        -e OBSERVIUM_DB_PASS=passw0rd \
-#        -e OBSERVIUM_DB_NAME=observium \
-#        -e OBSERVIUM_BASE_URL=http://yourserver.yourdomain:80 \
-#        -p 8888:80 mbixtech/observium
-#
-# References:
-#  - Follow platform guideline specified in https://github.com/docker-library/official-images
-# 
+FROM shawngmc/ubuntu:latest
 
-FROM ubuntu:20.04
+LABEL version="1.0"
 
-LABEL maintainer "somsakc@hotmail.com"
-LABEL version="1.5"
-LABEL description="Docker container for Observium Community Edition"
+LABEL org.label-schema.name = "hitoma-observium"
+
+LABEL org.label-schema.description = "Observium SNMP Monitor on Hitoma Ubuntu Base Image"
+LABEL description="Observium SNMP Monitor on Hitoma Ubuntu Base Image"
+
+LABEL org.label-schema.vcs-url = "https://github.com/shawngmc/docker-observium"
+LABEL org.label-schema.vcs-ref = "TODO"
 
 ARG OBSERVIUM_ADMIN_USER=admin
 ARG OBSERVIUM_ADMIN_PASS=passw0rd
@@ -51,12 +25,13 @@ ENV OBSERVIUM_DB_USER=$OBSERVIUM_DB_USER
 ENV OBSERVIUM_DB_PASS=$OBSERVIUM_DB_PASS
 ENV OBSERVIUM_DB_NAME=$OBSERVIUM_DB_NAME
 
+USER root
+
 # install prerequisites and cleanup
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN apt-get update && \
     apt-get install -y libapache2-mod-php7.4 php7.4-cli php7.4-mysql php7.4-mysqli php7.4-gd php7.4-json php-pear snmp fping mysql-server mysql-client python3-mysqldb rrdtool subversion whois mtr-tiny ipmitool graphviz imagemagick apache2 python3-pymysql python-is-python3 monitoring-plugins-basic monitoring-plugins-common monitoring-plugins-standard && \
-    apt-get install -y libvirt-clients && \
-    apt-get install -y cron curl locales supervisor wget && \
+    apt-get install -y supervisor && \
     apt-get clean && \
     rm -f /etc/apache2/sites-available/* && \
     rm -f /etc/cron.d/* && \
@@ -69,9 +44,6 @@ RUN apt-get update && \
     rm -fr /var/log/* && \
     rm -fr /var/www && \
     mkdir /var/log/apache2
-
-# set locale
-RUN locale-gen en_US.UTF-8
 
 # install observium package
 RUN mkdir -p /opt/observium /opt/observium/logs /opt/observium/rrd && \
@@ -122,6 +94,7 @@ WORKDIR /opt/observium
 
 # configure entry point
 COPY supervisord.conf /etc/supervisord.conf
+USER nonroot
 ENTRYPOINT [ "/usr/bin/supervisord", "-c", "/etc/supervisord.conf" ]
 
 # expose tcp port
