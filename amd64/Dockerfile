@@ -1,4 +1,4 @@
-FROM shawngmc/ubuntu:latest
+FROM harbor.hitoma.com/shawn/ubuntu:latest
 
 LABEL version="1.0"
 
